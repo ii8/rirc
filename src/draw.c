@@ -739,12 +739,15 @@ check_coords(struct coords coords)
 static inline unsigned int
 nick_col(char *nick)
 {
-	unsigned int colour = 0;
+	/* FNV-1a hash folded to one byte */
+	unsigned int colour = 2166136261;
 
-	while (*nick)
-		colour += *nick++;
-
-	return nick_colours[colour % sizeof(nick_colours) / sizeof(nick_colours[0])];
+	while (*nick) {
+		colour ^= (unsigned int)*nick++;
+		colour *= 16777619;
+	}
+	colour = (colour >> 8 ^ colour) & 0xff;
+	return ++colour > 231 ? colour - 80 : colour;
 }
 
 static char*
